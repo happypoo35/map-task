@@ -168,7 +168,7 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
           source: "lines",
           paint: {
             "circle-stroke-width": 3,
-            "circle-radius": 4,
+            "circle-radius": 3,
             "circle-color": secondaryColor,
             "circle-stroke-color": primaryColor,
           },
