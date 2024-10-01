@@ -1,0 +1,25 @@
+.tooltip {
+  position: absolute;
+  bottom: 0.75rem;
+  left: -100%;
+  z-index: 1;
+  background: white;
+  padding: 1rem;
+  box-shadow: 0 0.125rem 1rem rgba(black, 0.1);
+  border-radius: 0.5rem;
+  font-family: "Geologica", sans-serif;
+  font-weight: 400;
+  font-size: 0.875rem;
+  opacity: 0;
+
+  &:not([aria-hidden]) {
+    animation: 0.3s in forwards;
+  }
+
+  @keyframes in {
+    to {
+      left: 0.75rem;
+      opacity: 1;
+    }
+  }
+}

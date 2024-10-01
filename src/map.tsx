@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FiPlus, FiEye, FiEyeOff, FiTrash2 } from "react-icons/fi";
 import maplibre from "maplibre-gl";
+import { Tooltip } from "./tooltip";
 
 import "maplibre-gl/dist/maplibre-gl.css";
 import styles from "./map.module.scss";
@@ -30,6 +31,7 @@ const initLines: Line[] = localLines === null ? [] : JSON.parse(localLines);
 export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibre.Map | null>(null);
+
   const [addState, setAddState] = useState<"point" | "line" | null>(null);
   const [activeLayers, setActiveLayers] = useState({
     points: true,
@@ -227,6 +229,7 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
           },
         })),
       });
+
       localStorage.setItem("points", JSON.stringify(points));
     }
   }, [points]);
@@ -277,6 +280,7 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
         ]),
       });
     }
+
     if (linesCapsSource) {
       linesCapsSource.setData({
         type: "FeatureCollection",
@@ -294,6 +298,7 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
         ),
       });
     }
+
     localStorage.setItem("lines", JSON.stringify(lines));
   }, [lines]);
 
@@ -388,6 +393,7 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
           data-hidden={!activeLayers.points || undefined}
         >
           <button
+            title="Скрыть слой"
             onClick={() => {
               toggleVisibility(["points"]);
               setActiveLayers((p) => ({ ...p, points: !p.points }));
@@ -397,6 +403,7 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
             Точки
           </button>
           <button
+            title="Добавить точку"
             onClick={() => {
               setAddState("point");
               clearNewLine();
@@ -405,6 +412,7 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
             <FiPlus />
           </button>
           <button
+            title="Удалить точки"
             onClick={() => {
               setPoints([]);
               localStorage.removeItem("points");
@@ -418,6 +426,7 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
           data-hidden={!activeLayers.lines || undefined}
         >
           <button
+            title="Скрыть слой"
             onClick={() => {
               toggleVisibility(["lines", "linesCaps"]);
               setActiveLayers((p) => ({ ...p, lines: !p.lines }));
@@ -428,6 +437,7 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
             Линии
           </button>
           <button
+            title="Добавить линию"
             onClick={() => {
               setAddState("line");
               clearNewLine();
@@ -436,6 +446,7 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
             <FiPlus />
           </button>
           <button
+            title="Удалить линии"
             onClick={() => {
               setLines([]);
               localStorage.removeItem("lines");
@@ -446,6 +457,7 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
           </button>
         </div>
       </div>
+      <Tooltip addState={addState} newLineLength={newLine.length} />
       <div ref={mapContainer} className={styles.map} />
     </div>
   );
