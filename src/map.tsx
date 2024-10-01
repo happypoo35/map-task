@@ -443,10 +443,16 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
               {activeLayers[layer] ? <FiEye /> : <FiEyeOff />}
               {name === "point" ? "Точки" : "Линии"}
             </button>
-            <button title="Добавить точку" onClick={() => handleAdd(name)}>
+            <button
+              title={`Добавить ${name === "point" ? "точку" : "линию"}`}
+              onClick={() => handleAdd(name)}
+            >
               <FiPlus />
             </button>
-            <button title="Удалить точки" onClick={() => handleDelete(layer)}>
+            <button
+              title={`Удалить ${name === "point" ? "точки" : "линии"}`}
+              onClick={() => handleDelete(layer)}
+            >
               <FiTrash2 />
             </button>
           </div>
