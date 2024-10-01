@@ -31,6 +31,7 @@ const initLines: Line[] = localLines === null ? [] : JSON.parse(localLines);
 export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibre.Map | null>(null);
+  const popup = useRef<maplibre.Popup | null>(null);
 
   const [addState, setAddState] = useState<"point" | "line" | null>(null);
   const [activeLayers, setActiveLayers] = useState({
@@ -56,11 +57,13 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
         zoom: defaultZoom,
       });
 
-      const mapEl = map.current;
-      const popup = new maplibre.Popup({
+      popup.current = new maplibre.Popup({
         closeButton: true,
         className: styles.popup,
       });
+
+      const mapEl = map.current;
+      const popupEl = popup.current;
 
       mapEl.addControl(new maplibre.NavigationControl(), "top-left");
 
@@ -193,9 +196,9 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
                 number
               ];
 
-              popup.setLngLat(coords).setHTML(dateAdded).addTo(mapEl);
+              popupEl.setLngLat(coords).setHTML(dateAdded).addTo(mapEl);
             } else if (e.features[0].geometry.type === "LineString") {
-              popup.setLngLat(e.lngLat).setHTML(dateAdded).addTo(mapEl);
+              popupEl.setLngLat(e.lngLat).setHTML(dateAdded).addTo(mapEl);
             }
           }
         };
@@ -279,7 +282,7 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
           },
         ]),
       });
-      
+
       localStorage.setItem("lines", JSON.stringify(lines));
     }
 
@@ -370,6 +373,13 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
     }
   };
 
+  // Clear Popup
+  const clearPopup = () => {
+    if (popup.current) {
+      popup.current.remove();
+    }
+  };
+
   // Toggle Layer Visibility
   const toggleVisibility = (layers: string[]) => {
     if (!map.current) return;
@@ -385,77 +395,62 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
     });
   };
 
+  const handleToggle = (layer: "points" | "lines") => {
+    if (layer === "points") {
+      toggleVisibility(["points"]);
+    } else {
+      toggleVisibility(["lines", "linesCaps"]);
+      clearNewLine();
+    }
+    setActiveLayers((p) => ({ ...p, [layer]: !p[layer] }));
+    clearPopup();
+  };
+
+  // Add Object To Map
+  const handleAdd = (name: "point" | "line") => {
+    setAddState(name);
+    clearNewLine();
+    clearPopup();
+  };
+
+  // Delete Object From Map
+  const handleDelete = (layer: "points" | "lines") => {
+    if (layer === "lines") {
+      setLines([]);
+      clearNewLine();
+    } else {
+      setPoints([]);
+    }
+    localStorage.removeItem(layer);
+    clearPopup();
+  };
+
+  const elements = [
+    ["point", "points"],
+    ["line", "lines"],
+  ] as const;
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.controls}>
-        <div
-          className={styles.control}
-          data-hidden={!activeLayers.points || undefined}
-        >
-          <button
-            title="Скрыть слой"
-            onClick={() => {
-              toggleVisibility(["points"]);
-              setActiveLayers((p) => ({ ...p, points: !p.points }));
-            }}
+        {elements.map(([name, layer]) => (
+          <div
+            key={name}
+            className={styles.control}
+            data-hidden={!activeLayers[layer] || undefined}
           >
-            {activeLayers.points ? <FiEye /> : <FiEyeOff />}
-            Точки
-          </button>
-          <button
-            title="Добавить точку"
-            onClick={() => {
-              setAddState("point");
-              clearNewLine();
-            }}
-          >
-            <FiPlus />
-          </button>
-          <button
-            title="Удалить точки"
-            onClick={() => {
-              setPoints([]);
-              localStorage.removeItem("points");
-            }}
-          >
-            <FiTrash2 />
-          </button>
-        </div>
-        <div
-          className={styles.control}
-          data-hidden={!activeLayers.lines || undefined}
-        >
-          <button
-            title="Скрыть слой"
-            onClick={() => {
-              toggleVisibility(["lines", "linesCaps"]);
-              setActiveLayers((p) => ({ ...p, lines: !p.lines }));
-              clearNewLine();
-            }}
-          >
-            {activeLayers.lines ? <FiEye /> : <FiEyeOff />}
-            Линии
-          </button>
-          <button
-            title="Добавить линию"
-            onClick={() => {
-              setAddState("line");
-              clearNewLine();
-            }}
-          >
-            <FiPlus />
-          </button>
-          <button
-            title="Удалить линии"
-            onClick={() => {
-              setLines([]);
-              localStorage.removeItem("lines");
-              clearNewLine();
-            }}
-          >
-            <FiTrash2 />
-          </button>
-        </div>
+            <button title="Скрыть слой" onClick={() => handleToggle(layer)}>
+              {activeLayers[layer] ? <FiEye /> : <FiEyeOff />}
+              {name === "point" ? "Точки" : "Линии"}
+            </button>
+            <button title="Добавить точку" onClick={() => handleAdd(name)}>
+              <FiPlus />
+            </button>
+            <button title="Удалить точки" onClick={() => handleDelete(layer)}>
+              <FiTrash2 />
+            </button>
+          </div>
+        ))}
       </div>
       <Tooltip addState={addState} newLineLength={newLine.length} />
       <div ref={mapContainer} className={styles.map} />
