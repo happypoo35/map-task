@@ -279,6 +279,8 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
           },
         ]),
       });
+      
+      localStorage.setItem("lines", JSON.stringify(lines));
     }
 
     if (linesCapsSource) {
@@ -298,8 +300,6 @@ export const Map = ({ centerLng, centerLtd, defaultZoom }: Props) => {
         ),
       });
     }
-
-    localStorage.setItem("lines", JSON.stringify(lines));
   }, [lines]);
 
   // Add points to state
